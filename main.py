@@ -73,7 +73,6 @@ async def collect_personal_data(query: CallbackQuery, state: FSMContext):
 
 @router.message(PersonalDataForm.set_name)
 async def set_name(msg: Message, state: FSMContext):
-    await msg.answer("Сохраняем твое имя <3")
     await state.update_data(name = msg.text)
     
     await msg.answer("Из какой ты группы?")
@@ -81,14 +80,13 @@ async def set_name(msg: Message, state: FSMContext):
 
 @router.message(PersonalDataForm.set_student_group)
 async def set_student_group(msg: Message, state: FSMContext):
-    await msg.answer("Сохраняем твою группу <3")
     await state.update_data(student_group = msg.text)
     
     data = await state.get_data()
     await state.set_state(Form.main_page)
     repository.add_or_update_user(msg.from_user.id, data['name'], data['student_group'])
 
-    await msg.answer("Сохранили обновили")
+    await msg.answer("Персональные данные были обновлены")
     
     await display_main_page_msg(msg)
 
