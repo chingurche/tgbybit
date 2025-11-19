@@ -45,10 +45,16 @@ class UserRepository:
         conn.commit()
         conn.close()
     
-    def get_random_user(self):
+    def get_random_user(self, user_id: int):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT id, username, student_group FROM users ORDER BY RANDOM() LIMIT 1")
+        cursor.execute("""
+            SELECT id, username, student_group 
+            FROM users 
+            WHERE id != ?
+            ORDER BY RANDOM() 
+            LIMIT 1
+        """, (user_id,))
         row = cursor.fetchone()
         conn.close()
         return row  # tuple или None
