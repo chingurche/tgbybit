@@ -1,20 +1,18 @@
 from aiogram import Router, F
 from aiogram.types import Message
-from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ReplyKeyboardRemove
-import asyncio
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 from states import Form
 from states import PersonalDataForm
-from testbase import UserRepository
+from user_data import UserData
+from exceptions import UserIsNotFound
+from personal_data import PersonalData
 import keyboard
 
 router = Router()
-
-repository = UserRepository("users.db")
 
 # Главное меню
 
@@ -23,16 +21,18 @@ repository = UserRepository("users.db")
 async def display_main_page_msg(msg: Message, state: FSMContext):
     await state.set_state(Form.main_page)
     
-    user = repository.get_user(msg.from_user.id)
-    if user is None:
-        await msg.answer("Привет, давай зарегистрируемся")
-        await collect_personal_data(msg, state)
-    else:
-        user_id, username, student_group = user
+    try:
+        user = UserData(msg.from_user.id) # здесь UserIsNotFound
+
         await msg.answer(
-            f"{username} : {student_group} - @{msg.from_user.username}", 
+            f"Твой профиль: \n\n" \
+            f"{user.personal_data.name}, из группы {user.personal_data.student_group} - @{msg.from_user.username}\n" \
+            f"{user.get_string_tags()}",
             reply_markup=keyboard.main_keyboard
         )
+    except UserIsNotFound:
+        await msg.answer("Привет, давай зарегистрируемся")
+        await collect_personal_data(msg, state)
 
 @router.callback_query(lambda c: c.data == "goto_main_page")
 async def display_main_page_cb(query: CallbackQuery, state: FSMContext):
@@ -44,10 +44,10 @@ async def display_main_page_cb(query: CallbackQuery, state: FSMContext):
 async def display_random_person(msg: Message, state: FSMContext):
     await state.set_state(Form.search_by_merge_page)
     
-    user = repository.get_random_user(msg.from_user.id)
-    _, username, student_group = user
+    user = UserData.get_random(msg.from_user.id)
     await msg.answer(
-        f"{username} : {student_group}",
+            f"{user.personal_data.name}, из группы {user.personal_data.student_group}\n" \
+            f"{user.get_string_tags()}",
         reply_markup=keyboard.swiping_keyboard
     )
 
@@ -73,7 +73,8 @@ async def set_student_group(msg: Message, state: FSMContext):
     await state.update_data(student_group = msg.text)
     
     data = await state.get_data()
-    repository.add_or_update_user(msg.from_user.id, data['name'], data['student_group'])
+    personal_data = PersonalData(data["name"], data["student_group"])
+    UserData.update_personal_data(msg.from_user.id, personal_data)
 
     await msg.answer("Персональные данные были обновлены")
     

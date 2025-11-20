@@ -2,13 +2,13 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from handlers import router
-from onboarding_handler import onboarding_router
+
+TOKEN = "8272034294:AAFJhoN2RmPP5QEThj9g1yTZ3gmrqtb-UkI"
 
 async def main():
-    bot = Bot("8427610229:AAE9mUs_RYLF2Cbng1H-0TGeRirYLrK4A4k")
+    bot = Bot(TOKEN)
     dp = Dispatcher(storage=MemoryStorage())
 
-    #dp.include_router(onboarding_router)
     dp.include_router(router)
 
     await dp.start_polling(bot)

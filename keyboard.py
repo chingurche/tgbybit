@@ -2,7 +2,8 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 BUTTONS_TEXT = {
-    "search_by_merge_tags": "Поиск по общим тегам",
+    #"search_by_merge_tags": "Поиск по общим тегам",
+    "search_by_merge_tags": "Найти рандомного пользователя (test)",
     "edit": "Изменить персональные данные",
     "back": "Вернуться"
 }
