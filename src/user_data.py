@@ -3,7 +3,7 @@ from exceptions import UserIsNotFound
 from repositories import UserRepository, TagsRepository, UserTagsRepository
 from personal_data import PersonalData
 
-DB_PATH = r"data\users.db"
+DB_PATH = "data/users.db"
 user_repository = UserRepository(DB_PATH)
 tags_repository = TagsRepository(DB_PATH)
 user_tags_repository = UserTagsRepository(DB_PATH)

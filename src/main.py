@@ -3,7 +3,8 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from handlers.message_handlers import router
 
-TOKEN = "8272034294:AAFJhoN2RmPP5QEThj9g1yTZ3gmrqtb-UkI"
+#TOKEN = "8272034294:AAFJhoN2RmPP5QEThj9g1yTZ3gmrqtb-UkI" # DEBUG
+TOKEN = "8427610229:AAE9mUs_RYLF2Cbng1H-0TGeRirYLrK4A4k" # RELEASE
 
 bot = Bot(TOKEN)
 dp = Dispatcher(storage=MemoryStorage())

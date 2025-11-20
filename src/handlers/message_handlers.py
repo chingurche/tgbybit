@@ -14,30 +14,6 @@ import keyboard
 
 router = Router()
 
-# Главное меню
-
-@router.message(F.text == "/start")
-@router.message(F.text == keyboard.BUTTONS_TEXT["back"])
-async def display_main_page_msg(msg: Message, state: FSMContext):
-    await state.set_state(Form.main_page)
-    
-    try:
-        user = UserData(msg.from_user.id) # здесь UserIsNotFound
-
-        await msg.answer(
-            f"Твой профиль: \n\n" \
-            f"{user.personal_data.name}, из группы {user.personal_data.student_group} - @{msg.from_user.username}\n" \
-            f"{user.get_string_tags()}",
-            reply_markup=keyboard.main_keyboard
-        )
-    except UserIsNotFound:
-        await msg.answer("Привет, давай зарегистрируемся")
-        await collect_personal_data(msg, state)
-
-@router.callback_query(lambda c: c.data == "goto_main_page")
-async def display_main_page_cb(query: CallbackQuery, state: FSMContext):
-    await display_main_page_msg(query.message)
-
 # Поиск 
 
 @router.message(Form.main_page, F.text == keyboard.BUTTONS_TEXT["search_by_merge_tags"])
@@ -79,3 +55,27 @@ async def set_student_group(msg: Message, state: FSMContext):
     await msg.answer("Персональные данные были обновлены")
     
     await display_main_page_msg(msg, state)
+
+# Главное меню
+
+@router.message()
+@router.message(F.text == keyboard.BUTTONS_TEXT["back"])
+async def display_main_page_msg(msg: Message, state: FSMContext):
+    await state.set_state(Form.main_page)
+    
+    try:
+        user = UserData(msg.from_user.id) # здесь UserIsNotFound
+
+        await msg.answer(
+            f"Твой профиль: \n\n" \
+            f"{user.personal_data.name}, из группы {user.personal_data.student_group} - @{msg.from_user.username}\n" \
+            f"{user.get_string_tags()}",
+            reply_markup=keyboard.main_keyboard
+        )
+    except UserIsNotFound:
+        await msg.answer("Привет, давай зарегистрируемся")
+        await collect_personal_data(msg, state)
+
+@router.callback_query(lambda c: c.data == "goto_main_page")
+async def display_main_page_cb(query: CallbackQuery, state: FSMContext):
+    await display_main_page_msg(query.message)
