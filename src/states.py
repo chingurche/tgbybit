@@ -3,9 +3,17 @@ from aiogram.fsm.state import State, StatesGroup
 class Form(StatesGroup):
     main_page = State()
     search_by_merge_page = State()
-    change_personal_data = State()
+    change_personal_data_page = State()
+    change_tags_page = State()
 
+class SearchingForm(StatesGroup):
+    ask_tag = State()
+    next_found_user = State()
 
 class PersonalDataForm(StatesGroup):
     set_name = State()
     set_student_group = State()
+
+class TagsForm(StatesGroup):
+    add_tag = State()
+    remove_tag = State()

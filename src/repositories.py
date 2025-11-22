@@ -25,6 +25,15 @@ class UserTagsRepository:
                 (user_id, tag_id)
             )
 
+    def remove_tag_from_user(self, user_id: int, tag_id: int) -> bool:
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute("""
+                DELETE FROM user_tags 
+                WHERE user_id = ? AND tag_id = ?
+            """, (user_id, tag_id))
+
+            return cursor.rowcount > 0 
+
     def get_tags_of_user(self, user_id: int):
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute("""
@@ -35,15 +44,27 @@ class UserTagsRepository:
             """, (user_id,))
             return cursor.fetchall()
 
-    def get_users_by_tag(self, tag_name: str):
+    def get_users_by_tag(self, tag_id: int):
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute("""
-                SELECT users.id, users.username
+                SELECT users.id
                 FROM users
                 JOIN user_tags ON users.id = user_tags.user_id
-                JOIN tags ON tags.id = user_tags.tag_id
-                WHERE tags.tag_name = ?
-            """, (tag_name,))
+                WHERE user_tags.tag_id = ?
+            """, (tag_id,))
+            return cursor.fetchall()
+    
+    
+    def get_top_tags(self):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute("""
+                SELECT t.tag_name, COUNT(ut.user_id) AS user_count
+                FROM user_tags ut
+                JOIN tags t ON ut.tag_id = t.id
+                GROUP BY ut.tag_id
+                ORDER BY user_count DESC
+                LIMIT 5;
+            """)
             return cursor.fetchall()
 
 class TagsRepository:
@@ -60,19 +81,30 @@ class TagsRepository:
             )
             """)
 
-    def is_tag_exist(self, tag_name : str) -> bool:
+    """def is_tag_exist(self, tag_name : str) -> bool:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             conn.execute(
                 "SELECT * FROM tags WHERE tag_name=?",
                 (tag_name,)
             )
-            return cursor.fetchone() is not None
+            return cursor.fetchone() is not None"""
+        
+    def get_tag_id(self, tag_name : str) -> int:
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT tags.id
+                FROM tags
+                WHERE tag_name=?""",
+                (tag_name,)
+            )
+            return cursor.fetchone()[0]
 
     def add_new_tag(self, tag_name: str):
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("""
-                INSERT INTO tags (tag_name) VALUES (?)
+                INSERT OR IGNORE INTO tags (tag_name) VALUES (?)
                 """,
                 (tag_name,)
             )

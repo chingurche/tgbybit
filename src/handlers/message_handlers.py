@@ -3,18 +3,17 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ReplyKeyboardRemove
 
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from aiogram.types import CallbackQuery
 
-from states import Form
-from states import PersonalDataForm
+from states import Form, PersonalDataForm, TagsForm, SearchingForm
 from user_data import UserData
-from exceptions import UserIsNotFound
+from exceptions import UserIsNotFound, NoUsersWithTagError
 from personal_data import PersonalData
 import keyboard
 
 router = Router()
 
-# Поиск 
+# Поиск по совместимым
 
 @router.message(Form.main_page, F.text == keyboard.BUTTONS_TEXT["search_by_merge_tags"])
 async def display_random_person(msg: Message, state: FSMContext):
@@ -24,12 +23,99 @@ async def display_random_person(msg: Message, state: FSMContext):
     await msg.answer(
             f"{user.personal_data.name}, из группы {user.personal_data.student_group}\n" \
             f"{user.get_string_tags()}",
-        reply_markup=keyboard.swiping_keyboard
+        reply_markup=keyboard.swiping
     )
+
+# Поиск по одному тегу
+
+@router.message(Form.main_page, F.text == keyboard.BUTTONS_TEXT["search_by_tag"])
+async def ask_tag(msg: Message, state: FSMContext):
+    await state.set_state(SearchingForm.ask_tag)
+
+    await msg.answer(
+        "По какому исполнителю будем искать?",
+        reply_markup = ReplyKeyboardRemove()
+    )
+    
+@router.message(SearchingForm.ask_tag)
+async def ask_tag(msg: Message, state: FSMContext):
+    try:
+        users = UserData(msg.from_user.id).get_list_of_users_by_tag(msg.text)
+        await state.update_data(founded_users = users)
+        await msg.answer(f"Слушателей найдено: {len(users)}")
+        await next_user(msg, state)
+    except NoUsersWithTagError:
+        await msg.answer("Не найдено слушателей кроме тебя")
+        await display_main_page_msg(msg, state)
+    except TypeError:
+        await msg.answer("Не найдено слушателей")
+        await display_main_page_msg(msg, state)
+
+@router.message(SearchingForm.next_found_user, F.text == keyboard.BUTTONS_TEXT["next_user"])
+async def next_user(msg: Message, state: FSMContext):
+    data = await state.get_data()
+    users = data["founded_users"]
+    if len(users) == 0:
+        msg.answer("Слушатели закончились")
+        display_main_page_msg(msg, state)
+    found_user = UserData(users.pop(0))
+    await state.update_data(founded_users = users)
+
+    await msg.answer(
+            f"<аноним>\n" \
+            f"{found_user.get_string_tags()}",
+        reply_markup=keyboard.swiping 
+    )
+
+# Теги
+
+@router.message(Form.main_page, F.text == keyboard.BUTTONS_TEXT["edit_tags"])
+async def change_tags(msg: Message, state: FSMContext):
+    await state.set_state(Form.change_tags_page)
+
+    user = UserData(msg.from_user.id)
+    await msg.answer(
+        f"{user.get_string_tags()}",
+        reply_markup = keyboard.tags
+    )
+
+@router.message(Form.change_tags_page, F.text == keyboard.BUTTONS_TEXT["add_tag"])
+async def ask_new_tag(msg: Message, state: FSMContext):
+    await state.set_state(TagsForm.add_tag)
+
+    await msg.answer(
+        "Введи нового исполнителя",
+        reply_markup = ReplyKeyboardRemove()
+    )
+
+@router.message(TagsForm.add_tag)
+async def add_new_tag(msg: Message, state: FSMContext):
+    UserData(msg.from_user.id).add_new_tag(msg.text)
+
+    await change_tags(msg, state)
+
+
+@router.message(Form.change_tags_page, F.text == keyboard.BUTTONS_TEXT["remove_tag"])
+async def ask_tag(msg: Message, state: FSMContext):
+    await state.set_state(TagsForm.remove_tag)
+
+    await msg.answer(
+        "Какого исполнителя хочешь удалить из профиля?",
+        reply_markup = ReplyKeyboardRemove()
+    )
+
+@router.message(TagsForm.remove_tag)
+async def add_tag(msg: Message, state: FSMContext):
+    try:
+        UserData(msg.from_user.id).remove_tag(msg.text)
+    except:
+        await msg.answer("У тебя нет такого исполнителя")
+    
+    await change_tags(msg, state)
 
 # Персональные данные
 
-@router.message(Form.main_page, F.text == keyboard.BUTTONS_TEXT["edit"])
+@router.message(Form.main_page, F.text == keyboard.BUTTONS_TEXT["edit_data"])
 async def collect_personal_data(msg: Message, state: FSMContext):
     await msg.answer(
         "Введи новый никнейм",
@@ -56,6 +142,12 @@ async def set_student_group(msg: Message, state: FSMContext):
     
     await display_main_page_msg(msg, state)
 
+# Топ тегов
+
+@router.message(Form.main_page, F.text == keyboard.BUTTONS_TEXT["top_tags"])
+async def ask_tag(msg: Message, state: FSMContext):
+    await msg.answer(UserData.get_popular_tags())
+
 # Главное меню
 
 @router.message()
@@ -70,7 +162,7 @@ async def display_main_page_msg(msg: Message, state: FSMContext):
             f"Твой профиль: \n\n" \
             f"{user.personal_data.name}, из группы {user.personal_data.student_group} - @{msg.from_user.username}\n" \
             f"{user.get_string_tags()}",
-            reply_markup=keyboard.main_keyboard
+            reply_markup=keyboard.main
         )
     except UserIsNotFound:
         await msg.answer("Привет, давай зарегистрируемся")
