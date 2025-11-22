@@ -11,6 +11,7 @@ BUTTONS_TEXT = {
     "remove_tag": "Удалить исполнителя",
     "edit_data": "Изменить данные",
     "top_tags": "Топ исполнителей",
+    "help": "Помощь",
     "back": "Вернуться"
 }
 
@@ -19,7 +20,7 @@ main = ReplyKeyboardMarkup(
         [KeyboardButton(text = BUTTONS_TEXT["search_by_merge_tags"])],
         [KeyboardButton(text = BUTTONS_TEXT["search_by_tag"])],
         [KeyboardButton(text = BUTTONS_TEXT["edit_data"]), KeyboardButton(text = BUTTONS_TEXT["edit_tags"])],
-        [KeyboardButton(text = BUTTONS_TEXT["top_tags"])],
+        [KeyboardButton(text = BUTTONS_TEXT["help"]), KeyboardButton(text = BUTTONS_TEXT["top_tags"])],
     ],
     resize_keyboard=True
 )

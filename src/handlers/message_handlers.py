@@ -42,7 +42,10 @@ async def ask_tag(msg: Message, state: FSMContext):
     try:
         users = UserData(msg.from_user.id).get_list_of_users_by_tag(msg.text)
         await state.update_data(founded_users = users)
-        await msg.answer(f"Слушателей найдено: {len(users)}")
+        await msg.answer(
+            f"Слушателей исполнителя _{msg.text}_ найдено: {len(users)}",
+            parse_mode="MarkdownV2"
+        )
         await next_user(msg, state)
     except NoUsersWithTagError:
         await msg.answer("Не найдено слушателей кроме тебя")
@@ -53,16 +56,19 @@ async def ask_tag(msg: Message, state: FSMContext):
 
 @router.message(SearchingForm.next_found_user, F.text == keyboard.BUTTONS_TEXT["next_user"])
 async def next_user(msg: Message, state: FSMContext):
+    await state.set_state(SearchingForm.next_found_user)
+
     data = await state.get_data()
     users = data["founded_users"]
     if len(users) == 0:
-        msg.answer("Слушатели закончились")
-        display_main_page_msg(msg, state)
+        await msg.answer("Слушатели закончились")
+        await display_main_page_msg(msg, state)
+        return
     found_user = UserData(users.pop(0))
     await state.update_data(founded_users = users)
 
     await msg.answer(
-            f"<аноним>\n" \
+            f"<анонимный слушатель>\n" \
             f"{found_user.get_string_tags()}",
         reply_markup=keyboard.swiping 
     )
