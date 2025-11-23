@@ -5,6 +5,7 @@ BUTTONS_TEXT = {
     #"search_by_merge_tags": "Поиск по общим тегам",
     "search_by_merge_tags": "Найти рандомного пользователя (test)",
     "next_user": "Дальше",
+    "send_request": "Запросить коннект",
     "search_by_tag": "Поиск по исполнителю",
     "edit_tags": "Изменить исполнителей",
     "add_tag": "Добавить исполнителя",
@@ -28,6 +29,7 @@ main = ReplyKeyboardMarkup(
 swiping = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text = BUTTONS_TEXT["next_user"])],
+        [KeyboardButton(text = BUTTONS_TEXT["send_request"])],
         [KeyboardButton(text = BUTTONS_TEXT["back"])]
     ],
     resize_keyboard=True

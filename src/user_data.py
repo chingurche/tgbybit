@@ -1,12 +1,49 @@
 import config
-from aiogram.types import Message
 from exceptions import UserIsNotFound, TagConnectionNotFound, NoUsersWithTagError
-from repositories import UserRepository, TagsRepository, UserTagsRepository
-from personal_data import PersonalData
+from repositories import UserRepository, TagsRepository, UserTagsRepository, ConnectionsRepository
 
 user_repository = UserRepository(config.DB_PATH)
 tags_repository = TagsRepository(config.DB_PATH)
 user_tags_repository = UserTagsRepository(config.DB_PATH)
+connection_repository = ConnectionsRepository(config.DB_PATH)
+    
+class PersonalData:
+    def __init__(self, name, student_group):
+        self.name = name
+        self.student_group = student_group
+
+class TagList:
+    def __init__(self, user_id):
+        self.tags = user_tags_repository.get_tags_of_user(user_id)
+    
+    @staticmethod
+    def get_popular() -> str:
+        tags = user_tags_repository.get_top_tags()
+        output = ""
+        for i in range(len(tags)):
+            output += f"{i+1}\. `{tags[i][0]}` — *{tags[i][1]}*\n"
+        return output
+    
+    def get_as_merged_with(self, other) -> str:
+        output = "Исполнители: "
+        counter = 0
+        for tag in self.tags:
+            if tag in other:
+                output += f"🔥`{tag[0]}`, "
+                counter += 1
+            else:
+                output += f"`{tag[0]}`, "
+        output = output[:-2] + f"\nОбщих исполнителей: *{counter}*"
+        return output
+
+    
+    def get_as_mine(self) -> str:
+        if len(self.tags) == 0: return "У вас не добавлено ни одного исполнителя/."
+
+        output = "Исполнители: "
+        for tag in self.tags:
+            output += f"`{tag[0]}`, "
+        return output[:-2]
 
 class UserData:
     def __init__(self, user_id):
@@ -17,23 +54,35 @@ class UserData:
         _, username, student_group = user
         self.id = user_id
         self.personal_data = PersonalData(username, student_group)
-        self.tags = user_tags_repository.get_tags_of_user(user_id)
+        self.tag_list = TagList(user_id)
 
     @staticmethod
     def get_random(my_id):
         return UserData(user_repository.get_random_user_id(my_id))
     
     @staticmethod
-    def get_popular_tags():
-        tags = user_tags_repository.get_top_tags()
-        output = ""
-        for i in range(len(tags)):
-            output += f"{i+1}. {tags[i][0]} - {tags[i][1]}\n"
-        return output
-    
-    @staticmethod
     def update_personal_data(user_id, data : PersonalData) -> None:
         user_repository.add_or_update_user(user_id, data)
+
+    def display_as_me(self) -> str:
+        username = f"[ты](tg://user?id={self.id})"
+        display = f"Твой профиль: \n\n" \
+            f"{self.personal_data.name}, {self.personal_data.student_group} — {username}\n" \
+            f"{self.tag_list.get_as_mine()}"
+        return display
+
+    def display_compared_with(self, other, anonymous: bool = True) -> str:
+        display = f"{self.tag_list.get_as_merged_with(other.tag_list.tags)}"
+    
+        if anonymous:
+            display = f"*анонимный слушатель*\n" + display
+        else:
+            username = f"[написать](tg://user?id={self.id})"
+            display = f"{self.personal_data.name}, {self.personal_data.student_group} — {username}\n" + display
+        return display
+    
+    def send_request_from(self, other_id):
+        connection_repository.create_request(other_id, self.id)
 
     def get_list_of_users_by_tag(self, tag_name):
         tag_id = tags_repository.get_tag_id(tag_name)
@@ -59,12 +108,3 @@ class UserData:
         tag_id = tags_repository.get_tag_id(removed_tag)
         is_removed = user_tags_repository.remove_tag_from_user(self.id, tag_id)
         if not is_removed: raise TagConnectionNotFound
-
-    def get_string_tags(self) -> str:
-        tags = self.tags
-        if len(tags) == 0: return "У вас не добавлено ни одного исполнителя."
-
-        output = "Исполнители: "
-        for tag in tags:
-            output += tag[0] + ", "
-        return output[:-2]

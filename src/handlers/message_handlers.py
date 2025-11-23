@@ -6,23 +6,23 @@ from aiogram.types import ReplyKeyboardRemove
 from aiogram.types import CallbackQuery
 
 from states import Form, PersonalDataForm, TagsForm, SearchingForm
-from user_data import UserData
+from user_data import UserData, PersonalData, TagList
 from exceptions import UserIsNotFound, NoUsersWithTagError
-from personal_data import PersonalData
 import keyboard
 
 router = Router()
 
-# Поиск по совместимым
+# Поиск рандомного
 
 @router.message(Form.main_page, F.text == keyboard.BUTTONS_TEXT["search_by_merge_tags"])
 async def display_random_person(msg: Message, state: FSMContext):
     await state.set_state(Form.search_by_merge_page)
     
-    user = UserData.get_random(msg.from_user.id)
+    other_user = UserData.get_random(msg.from_user.id)
+    my_user = UserData(msg.from_user.id)
     await msg.answer(
-            f"{user.personal_data.name}, из группы {user.personal_data.student_group}\n" \
-            f"{user.get_string_tags()}",
+        other_user.display_compared_with(my_user, anonymous=True),
+        parse_mode="MarkdownV2",
         reply_markup=keyboard.swiping
     )
 
@@ -64,14 +64,30 @@ async def next_user(msg: Message, state: FSMContext):
         await msg.answer("Слушатели закончились")
         await display_main_page_msg(msg, state)
         return
-    found_user = UserData(users.pop(0))
+    found_user_id = users.pop(0)
+    found_user = UserData(found_user_id)
     await state.update_data(founded_users = users)
+    await state.update_data(found_user_id = found_user_id)
 
+    my_user = UserData(msg.from_user.id)
     await msg.answer(
-            f"<анонимный слушатель>\n" \
-            f"{found_user.get_string_tags()}",
+        found_user.display_compared_with(my_user, anonymous=True),
+        parse_mode="MarkdownV2",
         reply_markup=keyboard.swiping 
     )
+
+
+@router.message(SearchingForm.next_found_user, F.text == keyboard.BUTTONS_TEXT["send_request"])
+async def send_request(msg: Message, state: FSMContext):
+    found_user_id = await state.get_data()["found_user_id"]
+    found_user = UserData(found_user_id)
+    found_user.send_request_from(msg.from_user.id)
+    await msg.answer("✅ Запрос отправлен, ждем ответа...")
+
+    await next_user(msg, state)
+
+# Посмотреть запросы
+
 
 # Теги
 
@@ -81,7 +97,8 @@ async def change_tags(msg: Message, state: FSMContext):
 
     user = UserData(msg.from_user.id)
     await msg.answer(
-        f"{user.get_string_tags()}",
+        f"{user.tag_list.get_as_mine()}",
+        parse_mode="MarkdownV2",
         reply_markup = keyboard.tags
     )
 
@@ -152,7 +169,10 @@ async def set_student_group(msg: Message, state: FSMContext):
 
 @router.message(Form.main_page, F.text == keyboard.BUTTONS_TEXT["top_tags"])
 async def ask_tag(msg: Message, state: FSMContext):
-    await msg.answer(UserData.get_popular_tags())
+    await msg.answer(
+        TagList.get_popular(),
+        parse_mode="MarkdownV2"
+    )
 
 # Главное меню
 
@@ -165,9 +185,8 @@ async def display_main_page_msg(msg: Message, state: FSMContext):
         user = UserData(msg.from_user.id) # здесь UserIsNotFound
 
         await msg.answer(
-            f"Твой профиль: \n\n" \
-            f"{user.personal_data.name}, из группы {user.personal_data.student_group} - @{msg.from_user.username}\n" \
-            f"{user.get_string_tags()}",
+            user.display_as_me(),
+            parse_mode="MarkdownV2",
             reply_markup=keyboard.main
         )
     except UserIsNotFound:

@@ -1,5 +1,54 @@
 import sqlite3
-from personal_data import PersonalData
+from models import PersonalData
+
+class ConnectionsRepository:
+    def __init__(self, db_path : str):
+        self.db_path = db_path
+        #self._create_table()
+
+    def _create_table(self) -> None:
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("""
+                CREATE TABLE connections (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                from_user INTEGER NOT NULL,
+                to_user INTEGER NOT NULL,
+                status TEXT NOT NULL CHECK(status IN ('pending', 'accepted', 'declined')) DEFAULT 'pending',
+
+                FOREIGN KEY (from_user) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (to_user) REFERENCES users(id) ON DELETE CASCADE
+                )
+            """)
+
+    def create_request(self, from_user: int, to_user: int):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute(
+                "INSERT INTO connections (from_user, to_user) VALUES (?, ?)",
+                (from_user, to_user)
+            )
+            return cursor.lastrowid
+
+    def accept_request(self, request_id: int):
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                "UPDATE connections SET status='accepted' WHERE id=?",
+                (request_id,)
+            )
+
+    def decline_request(self, request_id: int):
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute(
+                "UPDATE connections SET status='declined' WHERE id=?",
+                (request_id,)
+            )
+
+    def get_pending_for_user(self, user_id: int):
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute(
+                "SELECT id, from_user FROM connections WHERE to_user=? AND status='pending'",
+                (user_id,)
+            )
+            return cursor.fetchall()
 
 class UserTagsRepository:
     def __init__(self, db_path : str):
