@@ -4,12 +4,12 @@ from models import PersonalData
 class ConnectionsRepository:
     def __init__(self, db_path : str):
         self.db_path = db_path
-        #self._create_table()
+        self._create_table()
 
     def _create_table(self) -> None:
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("""
-                CREATE TABLE connections (
+                CREATE TABLE IF NOT EXISTS connections (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 from_user INTEGER NOT NULL,
                 to_user INTEGER NOT NULL,

@@ -10,6 +10,9 @@ class SearchingForm(StatesGroup):
     ask_tag = State()
     next_found_user = State()
 
+class ConnectsForm(StatesGroup):
+    next_connect = State()
+
 class PersonalDataForm(StatesGroup):
     set_name = State()
     set_student_group = State()

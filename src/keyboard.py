@@ -12,6 +12,9 @@ BUTTONS_TEXT = {
     "remove_tag": "Удалить исполнителя",
     "edit_data": "Изменить данные",
     "top_tags": "Топ исполнителей",
+    "show_connects": "Входящие запросы",
+    "accept": "Принять",
+    "decline": "Отклонить",
     "help": "Помощь",
     "back": "Вернуться"
 }
@@ -21,7 +24,7 @@ main = ReplyKeyboardMarkup(
         [KeyboardButton(text = BUTTONS_TEXT["search_by_merge_tags"])],
         [KeyboardButton(text = BUTTONS_TEXT["search_by_tag"])],
         [KeyboardButton(text = BUTTONS_TEXT["edit_data"]), KeyboardButton(text = BUTTONS_TEXT["edit_tags"])],
-        [KeyboardButton(text = BUTTONS_TEXT["help"]), KeyboardButton(text = BUTTONS_TEXT["top_tags"])],
+        [KeyboardButton(text = BUTTONS_TEXT["show_connects"]), KeyboardButton(text = BUTTONS_TEXT["top_tags"])],
     ],
     resize_keyboard=True
 )
@@ -30,6 +33,14 @@ swiping = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text = BUTTONS_TEXT["next_user"])],
         [KeyboardButton(text = BUTTONS_TEXT["send_request"])],
+        [KeyboardButton(text = BUTTONS_TEXT["back"])]
+    ],
+    resize_keyboard=True
+)
+
+connects = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text = BUTTONS_TEXT["accept"])], [KeyboardButton(text = BUTTONS_TEXT["decline"])],
         [KeyboardButton(text = BUTTONS_TEXT["back"])]
     ],
     resize_keyboard=True

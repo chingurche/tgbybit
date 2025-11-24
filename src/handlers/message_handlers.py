@@ -1,15 +1,17 @@
-from aiogram import Router, F
+from aiogram import Bot, Router, F
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ReplyKeyboardRemove
 
 from aiogram.types import CallbackQuery
 
-from states import Form, PersonalDataForm, TagsForm, SearchingForm
-from user_data import UserData, PersonalData, TagList
+from states import Form, PersonalDataForm, TagsForm, SearchingForm, ConnectsForm
+from user_data import UserData, PersonalData, TagList, connection_repository
 from exceptions import UserIsNotFound, NoUsersWithTagError
 import keyboard
+import config
 
+bot = Bot(config.BOT_TOKEN)
 router = Router()
 
 # Поиск рандомного
@@ -79,14 +81,71 @@ async def next_user(msg: Message, state: FSMContext):
 
 @router.message(SearchingForm.next_found_user, F.text == keyboard.BUTTONS_TEXT["send_request"])
 async def send_request(msg: Message, state: FSMContext):
-    found_user_id = await state.get_data()["found_user_id"]
+    data = await state.get_data()
+    found_user_id = data["found_user_id"]
     found_user = UserData(found_user_id)
     found_user.send_request_from(msg.from_user.id)
     await msg.answer("✅ Запрос отправлен, ждем ответа...")
-
+    await bot.send_message(
+        found_user_id,
+        f"⚡ Получен новый запрос на коннект"
+    )
     await next_user(msg, state)
 
 # Посмотреть запросы
+
+@router.message(Form.main_page, F.text == keyboard.BUTTONS_TEXT["show_connects"])
+async def get_connects(msg: Message, state: FSMContext):
+    connects = UserData(msg.from_user.id).get_list_of_connects()
+    if len(connects) != 0:
+        await state.update_data(connects = connects)
+        await msg.answer(
+            f"Поступило новых запросов: *{len(connects)}*",
+            parse_mode="MarkdownV2"
+        )
+        await next_connect(msg, state)
+    else:
+        await msg.answer("Тебе не поступало новых запросов")
+
+async def next_connect(msg: Message, state: FSMContext):
+    await state.set_state(ConnectsForm.next_connect)
+
+    data = await state.get_data()
+    connects = data["connects"]
+    if len(connects) == 0:
+        await msg.answer("Запросы закончились")
+        await display_main_page_msg(msg, state)
+        return
+    connect = connects.pop(0)
+    connect_user = UserData(connect[1])
+    await state.update_data(connects = connects)
+    await state.update_data(connect = connect)
+
+    my_user = UserData(msg.from_user.id)
+    await msg.answer(
+        connect_user.display_compared_with(my_user, anonymous=True),
+        parse_mode="MarkdownV2",
+        reply_markup=keyboard.connects 
+    )
+
+@router.message(ConnectsForm.next_connect, F.text == keyboard.BUTTONS_TEXT["accept"])
+async def accept_connect(msg: Message, state: FSMContext):
+    data = await state.get_data()
+    connect = data["connect"]
+    connection_repository.accept_request(connect[0])
+    my_user = UserData(msg.from_user.id)
+    await msg.answer(
+        UserData(connect[1]).display_compared_with(my_user, anonymous=False),
+        parse_mode="MarkdownV2",
+    )
+    await next_connect(msg, state)
+
+@router.message(ConnectsForm.next_connect, F.text == keyboard.BUTTONS_TEXT["accept"])
+async def decline_connect(msg: Message, state: FSMContext):
+    data = await state.get_data()
+    connect = data["connect"]
+    connection_repository.decline_request(connect[0])
+    await next_connect(msg, state)
 
 
 # Теги

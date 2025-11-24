@@ -38,7 +38,7 @@ class TagList:
 
     
     def get_as_mine(self) -> str:
-        if len(self.tags) == 0: return "У вас не добавлено ни одного исполнителя/."
+        if len(self.tags) == 0: return "У вас не добавлено ни одного исполнителя\."
 
         output = "Исполнители: "
         for tag in self.tags:
@@ -65,9 +65,9 @@ class UserData:
         user_repository.add_or_update_user(user_id, data)
 
     def display_as_me(self) -> str:
-        username = f"[ты](tg://user?id={self.id})"
+        #username = f"[ты](tg://user?id={self.id})"
         display = f"Твой профиль: \n\n" \
-            f"{self.personal_data.name}, {self.personal_data.student_group} — {username}\n" \
+            f"{self.personal_data.name}, {self.personal_data.student_group}\n" \
             f"{self.tag_list.get_as_mine()}"
         return display
 
@@ -83,6 +83,10 @@ class UserData:
     
     def send_request_from(self, other_id):
         connection_repository.create_request(other_id, self.id)
+
+    def get_list_of_connects(self):
+        return connection_repository.get_pending_for_user(self.id)
+
 
     def get_list_of_users_by_tag(self, tag_name):
         tag_id = tags_repository.get_tag_id(tag_name)
