@@ -135,8 +135,15 @@ async def accept_connect(msg: Message, state: FSMContext):
     connection_repository.accept_request(connect[0])
     my_user = UserData(msg.from_user.id)
     await msg.answer(
-        UserData(connect[1]).display_compared_with(my_user, anonymous=False),
+        f"Успешный коннект\n\n" \
+        f"{UserData(connect[1]).display_compared_with(my_user, anonymous=False)}",
         parse_mode="MarkdownV2",
+    )
+    await bot.send_message(
+        connect[1],
+        f"Успешный коннект\n\n" \
+        f"{UserData(my_user).display_compared_with(UserData(connect[1]), anonymous=False)}",
+        parse_mode="MarkdownV2"
     )
     await next_connect(msg, state)
 
