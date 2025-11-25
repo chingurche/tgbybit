@@ -4,27 +4,29 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 BUTTONS_TEXT = {
     #"search_by_merge_tags": "Поиск по общим тегам",
     "search_by_merge_tags": "Найти рандомного пользователя (test)",
-    "next_user": "Дальше",
-    "send_request": "Запросить коннект",
-    "search_by_tag": "Поиск по исполнителю",
-    "edit_tags": "Изменить исполнителей",
-    "add_tag": "Добавить исполнителя",
-    "remove_tag": "Удалить исполнителя",
-    "edit_data": "Изменить данные",
-    "top_tags": "Топ исполнителей",
-    "show_connects": "Входящие запросы",
-    "accept": "Принять",
-    "decline": "Отклонить",
-    "help": "Помощь",
+    "next_user": "💨 Дальше",
+    "send_request": "📨 Запросить коннект",
+    "search_by_tag": "🔎 Поиск по исполнителю",
+    "edit_tags": "🏷️ Изменить исполнителей",
+    "add_tag": "➕ Добавить исполнителя",
+    "remove_tag": "➖ Удалить исполнителя",
+    "edit_data": "📋 Изменить данные",
+    "top_tags": "🏅 Топ исполнителей",
+    "show_connects": "📫 Входящие запросы на коннект",
+    "clear_connects": "🧹 Удалить все данные о коннектах",
+    "confirm": "⚠️ Подтвердить",
+    "accept": "✔️",
+    "decline": "❌",
+    #"help": "Помощь",
     "back": "Вернуться"
 }
 
 main = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text = BUTTONS_TEXT["search_by_merge_tags"])],
+        [KeyboardButton(text = BUTTONS_TEXT["top_tags"])],
         [KeyboardButton(text = BUTTONS_TEXT["search_by_tag"])],
         [KeyboardButton(text = BUTTONS_TEXT["edit_data"]), KeyboardButton(text = BUTTONS_TEXT["edit_tags"])],
-        [KeyboardButton(text = BUTTONS_TEXT["show_connects"]), KeyboardButton(text = BUTTONS_TEXT["top_tags"])],
+        [KeyboardButton(text = BUTTONS_TEXT["clear_connects"]), KeyboardButton(text = BUTTONS_TEXT["show_connects"])],
     ],
     resize_keyboard=True
 )
@@ -40,8 +42,15 @@ swiping = ReplyKeyboardMarkup(
 
 connects = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text = BUTTONS_TEXT["accept"])], [KeyboardButton(text = BUTTONS_TEXT["decline"])],
+        [KeyboardButton(text = BUTTONS_TEXT["decline"]), KeyboardButton(text = BUTTONS_TEXT["accept"])],
         [KeyboardButton(text = BUTTONS_TEXT["back"])]
+    ],
+    resize_keyboard=True
+)
+
+clear_connects = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text = BUTTONS_TEXT["confirm"])], [KeyboardButton(text = BUTTONS_TEXT["back"])]
     ],
     resize_keyboard=True
 )

@@ -49,6 +49,15 @@ class ConnectionsRepository:
                 (user_id,)
             )
             return cursor.fetchall()
+        
+    def clear_connects(self, user_id : int):
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("""
+                DELETE FROM connections
+                WHERE from_user = ? OR to_user = ? AND status='accepted'
+                DELETE FROM connections
+                WHERE to_user = ? AND status='declined'
+            """, (user_id,))
 
 class UserTagsRepository:
     def __init__(self, db_path : str):

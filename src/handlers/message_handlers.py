@@ -5,7 +5,7 @@ from aiogram.types import ReplyKeyboardRemove
 
 from aiogram.types import CallbackQuery
 
-from states import Form, PersonalDataForm, TagsForm, SearchingForm, ConnectsForm
+from states import Form, PersonalDataForm, TagsForm, SearchingForm, ConnectsForm, ClearConnectsForm
 from user_data import UserData, PersonalData, TagList, connection_repository
 from exceptions import UserIsNotFound, NoUsersWithTagError
 import keyboard
@@ -142,7 +142,7 @@ async def accept_connect(msg: Message, state: FSMContext):
     await bot.send_message(
         connect[1],
         f"Успешный коннект\n\n" \
-        f"{UserData(my_user).display_compared_with(UserData(connect[1]), anonymous=False)}",
+        f"{UserData(my_user.id).display_compared_with(UserData(connect[1]), anonymous=False)}",
         parse_mode="MarkdownV2"
     )
     await next_connect(msg, state)
@@ -154,7 +154,25 @@ async def decline_connect(msg: Message, state: FSMContext):
     connection_repository.decline_request(connect[0])
     await next_connect(msg, state)
 
+# Чистка тегов 
 
+@router.message(Form.main_page, F.text == keyboard.BUTTONS_TEXT["clear_connects"])
+async def confirm_connects_clearing(msg: Message, state: FSMContext):
+    await state.set_state(ClearConnectsForm.confirmation)
+    await msg.answer(
+        f"Удалятся все успешные коннекты и отклоненные ТОБОЙ запросы\.\n" \
+        f"Не будет удалены активные и отклоненные НЕ ТОБОЙ запросы\.\n\n" \
+        f"Это действие нельзя будет отменить\!",
+        parse_mode="MarkdownV2",
+        reply_markup = keyboard.clear_connects
+    )
+
+@router.message(ClearConnectsForm.confirmation, F.text == keyboard.BUTTONS_TEXT["confirm"])
+async def clear_connects(msg: Message, state: FSMContext):
+    connection_repository.clear_connects(msg.from_user.id)
+
+    await display_main_page_msg(msg, state)
+    
 # Теги
 
 @router.message(Form.main_page, F.text == keyboard.BUTTONS_TEXT["edit_tags"])

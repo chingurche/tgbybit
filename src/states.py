@@ -13,6 +13,9 @@ class SearchingForm(StatesGroup):
 class ConnectsForm(StatesGroup):
     next_connect = State()
 
+class ClearConnectsForm(StatesGroup):
+    confirmation = State()
+
 class PersonalDataForm(StatesGroup):
     set_name = State()
     set_student_group = State()
