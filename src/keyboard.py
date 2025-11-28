@@ -1,9 +1,8 @@
-
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 BUTTONS_TEXT = {
     #"search_by_merge_tags": "Поиск по общим тегам",
-    "search_by_merge_tags": "Найти рандомного пользователя (test)",
+    "in_development": "⚙️ В разработке",
     "next_user": "💨 Дальше",
     "send_request": "📨 Запросить коннект",
     "search_by_tag": "🔎 Поиск по исполнителю",
@@ -23,8 +22,8 @@ BUTTONS_TEXT = {
 
 main = ReplyKeyboardMarkup(
     keyboard=[
+        [KeyboardButton(text = BUTTONS_TEXT["in_development"]), KeyboardButton(text = BUTTONS_TEXT["search_by_tag"])],
         [KeyboardButton(text = BUTTONS_TEXT["top_tags"])],
-        [KeyboardButton(text = BUTTONS_TEXT["search_by_tag"])],
         [KeyboardButton(text = BUTTONS_TEXT["edit_data"]), KeyboardButton(text = BUTTONS_TEXT["edit_tags"])],
         [KeyboardButton(text = BUTTONS_TEXT["clear_connects"]), KeyboardButton(text = BUTTONS_TEXT["show_connects"])],
     ],

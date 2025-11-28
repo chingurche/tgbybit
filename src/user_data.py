@@ -21,7 +21,7 @@ class TagList:
         tags = user_tags_repository.get_top_tags()
         output = ""
         for i in range(len(tags)):
-            output += f"{i+1}\. `{tags[i][0]}` — *{tags[i][1]}*\n"
+            output += f"{i+1}. <code>{tags[i][0]}</code> — <b>{tags[i][1]}</b>\n"
         return output
     
     def get_as_merged_with(self, other) -> str:
@@ -29,11 +29,11 @@ class TagList:
         counter = 0
         for tag in self.tags:
             if tag in other:
-                output += f"🔥`{tag[0]}`, "
+                output += f"🔥<code>{tag[0]}</code>, "
                 counter += 1
             else:
-                output += f"`{tag[0]}`, "
-        output = output[:-2] + f"\nОбщих исполнителей: *{counter}*"
+                output += f"<code>{tag[0]}</code>, "
+        output = output[:-2] + f"\nОбщих исполнителей: <b>{counter}</b>"
         return output
 
     
@@ -42,7 +42,7 @@ class TagList:
 
         output = "Исполнители: "
         for tag in self.tags:
-            output += f"`{tag[0]}`, "
+            output += f"<code>{tag[0]}</code>, "
         return output[:-2]
 
 class UserData:

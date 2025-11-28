@@ -16,7 +16,7 @@ router = Router()
 
 # Поиск рандомного
 
-@router.message(Form.main_page, F.text == keyboard.BUTTONS_TEXT["search_by_merge_tags"])
+"""@router.message(Form.main_page, F.text == keyboard.BUTTONS_TEXT["search_by_merge_tags"])
 async def display_random_person(msg: Message, state: FSMContext):
     await state.set_state(Form.search_by_merge_page)
     
@@ -24,9 +24,9 @@ async def display_random_person(msg: Message, state: FSMContext):
     my_user = UserData(msg.from_user.id)
     await msg.answer(
         other_user.display_compared_with(my_user, anonymous=True),
-        parse_mode="MarkdownV2",
+        parse_mode="HTML",
         reply_markup=keyboard.swiping
-    )
+    )"""
 
 # Поиск по одному тегу
 
@@ -46,7 +46,7 @@ async def ask_tag(msg: Message, state: FSMContext):
         await state.update_data(founded_users = users)
         await msg.answer(
             f"Слушателей исполнителя _{msg.text}_ найдено: {len(users)}",
-            parse_mode="MarkdownV2"
+            parse_mode="HTML"
         )
         await next_user(msg, state)
     except NoUsersWithTagError:
@@ -74,7 +74,7 @@ async def next_user(msg: Message, state: FSMContext):
     my_user = UserData(msg.from_user.id)
     await msg.answer(
         found_user.display_compared_with(my_user, anonymous=True),
-        parse_mode="MarkdownV2",
+        parse_mode="HTML",
         reply_markup=keyboard.swiping 
     )
 
@@ -101,7 +101,7 @@ async def get_connects(msg: Message, state: FSMContext):
         await state.update_data(connects = connects)
         await msg.answer(
             f"Поступило новых запросов: *{len(connects)}*",
-            parse_mode="MarkdownV2"
+            parse_mode="HTML"
         )
         await next_connect(msg, state)
     else:
@@ -124,7 +124,7 @@ async def next_connect(msg: Message, state: FSMContext):
     my_user = UserData(msg.from_user.id)
     await msg.answer(
         connect_user.display_compared_with(my_user, anonymous=True),
-        parse_mode="MarkdownV2",
+        parse_mode="HTML",
         reply_markup=keyboard.connects 
     )
 
@@ -137,13 +137,13 @@ async def accept_connect(msg: Message, state: FSMContext):
     await msg.answer(
         f"Успешный коннект\n\n" \
         f"{UserData(connect[1]).display_compared_with(my_user, anonymous=False)}",
-        parse_mode="MarkdownV2",
+        parse_mode="HTML",
     )
     await bot.send_message(
         connect[1],
         f"Успешный коннект\n\n" \
         f"{UserData(my_user.id).display_compared_with(UserData(connect[1]), anonymous=False)}",
-        parse_mode="MarkdownV2"
+        parse_mode="HTML"
     )
     await next_connect(msg, state)
 
@@ -160,10 +160,10 @@ async def decline_connect(msg: Message, state: FSMContext):
 async def confirm_connects_clearing(msg: Message, state: FSMContext):
     await state.set_state(ClearConnectsForm.confirmation)
     await msg.answer(
-        f"Удалятся все успешные коннекты и отклоненные ТОБОЙ запросы\.\n" \
-        f"Не будет удалены активные и отклоненные НЕ ТОБОЙ запросы\.\n\n" \
-        f"Это действие нельзя будет отменить\!",
-        parse_mode="MarkdownV2",
+        f"Удалятся все успешные коннекты и отклоненные ТОБОЙ запросы.\n" \
+        f"Не будет удалены активные и отклоненные НЕ ТОБОЙ запросы.\n\n" \
+        f"Это действие нельзя будет отменить!",
+        parse_mode="HTML",
         reply_markup = keyboard.clear_connects
     )
 
@@ -182,7 +182,7 @@ async def change_tags(msg: Message, state: FSMContext):
     user = UserData(msg.from_user.id)
     await msg.answer(
         f"{user.tag_list.get_as_mine()}",
-        parse_mode="MarkdownV2",
+        parse_mode="HTML",
         reply_markup = keyboard.tags
     )
 
@@ -234,7 +234,7 @@ async def collect_personal_data(msg: Message, state: FSMContext):
 async def set_name(msg: Message, state: FSMContext):
     await state.update_data(name = msg.text)
     
-    await msg.answer("Из какой ты группы?")
+    await msg.answer("Сколько тебе лет?")
     await state.set_state(PersonalDataForm.set_student_group)
 
 @router.message(PersonalDataForm.set_student_group)
@@ -255,7 +255,7 @@ async def set_student_group(msg: Message, state: FSMContext):
 async def ask_tag(msg: Message, state: FSMContext):
     await msg.answer(
         TagList.get_popular(),
-        parse_mode="MarkdownV2"
+        parse_mode="HTML"
     )
 
 # Главное меню
@@ -270,7 +270,7 @@ async def display_main_page_msg(msg: Message, state: FSMContext):
 
         await msg.answer(
             user.display_as_me(),
-            parse_mode="MarkdownV2",
+            parse_mode="HTML",
             reply_markup=keyboard.main
         )
     except UserIsNotFound:
