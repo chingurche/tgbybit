@@ -75,7 +75,7 @@ class UserData:
         display = f"{self.tag_list.get_as_merged_with(other.tag_list.tags)}"
     
         if anonymous:
-            display = f"*анонимный слушатель*\n" + display
+            display = f"<b>анонимный слушатель</b>\n" + display
         else:
             username = f"[написать](tg://user?id={self.id})"
             display = f"{self.personal_data.name}, {self.personal_data.student_group} — {username}\n" + display

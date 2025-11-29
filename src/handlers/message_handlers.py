@@ -45,7 +45,7 @@ async def ask_tag(msg: Message, state: FSMContext):
         users = UserData(msg.from_user.id).get_list_of_users_by_tag(msg.text)
         await state.update_data(founded_users = users)
         await msg.answer(
-            f"Слушателей исполнителя _{msg.text}_ найдено: {len(users)}",
+            f"Слушателей исполнителя <b>{msg.text}</b> найдено: {len(users)}",
             parse_mode="HTML"
         )
         await next_user(msg, state)
@@ -100,7 +100,7 @@ async def get_connects(msg: Message, state: FSMContext):
     if len(connects) != 0:
         await state.update_data(connects = connects)
         await msg.answer(
-            f"Поступило новых запросов: *{len(connects)}*",
+            f"Поступило новых запросов: <b>{len(connects)}</b>",
             parse_mode="HTML"
         )
         await next_connect(msg, state)
